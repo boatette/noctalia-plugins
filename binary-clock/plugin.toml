@@ -1,0 +1,209 @@
+id = "boatette/binary-clock"
+name = "Binary Clock"
+version = "1.0.0"
+plugin_api = 14
+author = "boatette"
+license = "MIT"
+dependencies = []
+tags = ["clock", "time", "bar", "desktop"]
+icon = "binary"
+description = "A BCD binary clock as a bar widget and a desktop widget."
+
+# Left click opens the calendar
+[[widget]]
+id = "bar"
+entry = "bar.luau"
+
+  [widget.actions]
+  left = "panel-toggle control-center calendar"
+
+  [[widget.setting]]
+  key = "show_seconds"
+  type = "bool"
+  label_key = "settings.show_seconds.label"
+  description_key = "settings.show_seconds.description"
+  default = true
+
+  [[widget.setting]]
+  key = "hour_format"
+  type = "select"
+  label_key = "settings.hour_format.label"
+  description_key = "settings.hour_format.description"
+  default = "24"
+  options = [
+    { value = "24", label_key = "settings.hour_format.options.24" },
+    { value = "12", label_key = "settings.hour_format.options.12" },
+  ]
+
+  [[widget.setting]]
+  key = "led_size"
+  type = "int"
+  label_key = "settings.led_size.label"
+  description_key = "settings.led_size.description"
+  default = 5
+  min = 2
+  max = 16
+
+  [[widget.setting]]
+  key = "led_gap"
+  type = "int"
+  label_key = "settings.led_gap.label"
+  description_key = "settings.led_gap.description"
+  default = 2
+  min = 0
+  max = 8
+
+  [[widget.setting]]
+  key = "group_gap"
+  type = "int"
+  label_key = "settings.group_gap.label"
+  description_key = "settings.group_gap.description"
+  default = 6
+  min = 0
+  max = 24
+
+  [[widget.setting]]
+  key = "on_color"
+  type = "color"
+  label_key = "settings.on_color.label"
+  description_key = "settings.on_color.description"
+  default = "primary"
+
+  [[widget.setting]]
+  key = "off_color"
+  type = "color"
+  label_key = "settings.off_color.label"
+  description_key = "settings.off_color.description"
+  default = "outline"
+
+  [[widget.setting]]
+  key = "glow"
+  type = "int"
+  label_key = "settings.glow.label"
+  description_key = "settings.glow.description"
+  default = 0
+  min = 0
+  max = 12
+
+  [[widget.setting]]
+  key = "tooltip_format"
+  type = "string"
+  label_key = "settings.tooltip_format.label"
+  description_key = "settings.tooltip_format.description"
+  default = "%A, %d %B %Y - %H:%M:%S"
+
+[[desktop_widget]]
+id = "desktop"
+entry = "desktop.luau"
+
+  [[desktop_widget.setting]]
+  key = "show_seconds"
+  type = "bool"
+  label_key = "settings.show_seconds.label"
+  description_key = "settings.show_seconds.description"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "hour_format"
+  type = "select"
+  label_key = "settings.hour_format.label"
+  description_key = "settings.hour_format.description"
+  default = "24"
+  options = [
+    { value = "24", label_key = "settings.hour_format.options.24" },
+    { value = "12", label_key = "settings.hour_format.options.12" },
+  ]
+
+  [[desktop_widget.setting]]
+  key = "show_headers"
+  type = "bool"
+  label_key = "settings.show_headers.label"
+  description_key = "settings.show_headers.description"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "show_labels"
+  type = "bool"
+  label_key = "settings.show_labels.label"
+  description_key = "settings.show_labels.description"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "show_digits"
+  type = "bool"
+  label_key = "settings.show_digits.label"
+  description_key = "settings.show_digits.description"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "show_separators"
+  type = "bool"
+  label_key = "settings.show_separators.label"
+  description_key = "settings.show_separators.description"
+  default = true
+
+  [[desktop_widget.setting]]
+  key = "led_size"
+  type = "int"
+  label_key = "settings.led_size.label"
+  description_key = "settings.led_size.description"
+  default = 16
+  min = 4
+  max = 48
+
+  [[desktop_widget.setting]]
+  key = "led_gap"
+  type = "int"
+  label_key = "settings.led_gap.label"
+  description_key = "settings.led_gap.description"
+  default = 8
+  min = 0
+  max = 32
+
+  [[desktop_widget.setting]]
+  key = "group_gap"
+  type = "int"
+  label_key = "settings.group_gap.label"
+  description_key = "settings.group_gap.description"
+  default = 14
+  min = 0
+  max = 48
+
+  [[desktop_widget.setting]]
+  key = "font_size"
+  type = "int"
+  label_key = "settings.font_size.label"
+  description_key = "settings.font_size.description"
+  default = 13
+  min = 6
+  max = 40
+
+  [[desktop_widget.setting]]
+  key = "on_color"
+  type = "color"
+  label_key = "settings.on_color.label"
+  description_key = "settings.on_color.description"
+  default = "primary"
+
+  [[desktop_widget.setting]]
+  key = "off_color"
+  type = "color"
+  label_key = "settings.off_color.label"
+  description_key = "settings.off_color.description"
+  default = "outline"
+
+  [[desktop_widget.setting]]
+  key = "text_color"
+  type = "color"
+  label_key = "settings.text_color.label"
+  description_key = "settings.text_color.description"
+  default = "on_surface"
+
+  [[desktop_widget.setting]]
+  key = "glow"
+  type = "int"
+  label_key = "settings.glow.label"
+  description_key = "settings.glow.description"
+  default = 0
+  min = 0
+  max = 12

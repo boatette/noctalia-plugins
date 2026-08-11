@@ -1,0 +1,121 @@
+id = "boatette/auto-theme"
+name = "Auto Theme"
+version = "1.0.1"
+plugin_api = 9
+author = "boatette"
+license = "MIT"
+dependencies = []
+tags = ["theme", "wallpaper"]
+icon = "palette"
+description = "Set the global color scheme and light/dark mode from the wallpaper's directory."
+
+[[setting]]
+key = "enabled"
+type = "bool"
+label_key = "settings.enabled.label"
+description_key = "settings.enabled.description"
+default = true
+
+[[setting]]
+key = "wallpaper_root"
+type = "folder"
+label_key = "settings.wallpaper_root.label"
+description_key = "settings.wallpaper_root.description"
+default = "~/Pictures/Wallpapers"
+
+[[setting]]
+key = "dark_dir_names"
+type = "string"
+label_key = "settings.dark_dir_names.label"
+description_key = "settings.dark_dir_names.description"
+default = "Dark"
+
+[[setting]]
+key = "light_dir_names"
+type = "string"
+label_key = "settings.light_dir_names.label"
+description_key = "settings.light_dir_names.description"
+default = "Light"
+
+[[setting]]
+key = "dynamic_dir_names"
+type = "string"
+label_key = "settings.dynamic_dir_names.label"
+description_key = "settings.dynamic_dir_names.description"
+default = "Dynamic"
+
+[[setting]]
+key = "default_dynamic_scheme"
+type = "select"
+label_key = "settings.default_dynamic_scheme.label"
+description_key = "settings.default_dynamic_scheme.description"
+default = "m3-tonal-spot"
+options = [
+  { value = "wallust", label_key = "settings.default_dynamic_scheme.options.wallust" },
+  { value = "m3-tonal-spot", label_key = "settings.default_dynamic_scheme.options.m3-tonal-spot" },
+  { value = "m3-content", label_key = "settings.default_dynamic_scheme.options.m3-content" },
+  { value = "m3-fruit-salad", label_key = "settings.default_dynamic_scheme.options.m3-fruit-salad" },
+  { value = "m3-rainbow", label_key = "settings.default_dynamic_scheme.options.m3-rainbow" },
+  { value = "m3-monochrome", label_key = "settings.default_dynamic_scheme.options.m3-monochrome" },
+  { value = "vibrant", label_key = "settings.default_dynamic_scheme.options.vibrant" },
+  { value = "faithful", label_key = "settings.default_dynamic_scheme.options.faithful" },
+  { value = "soft", label_key = "settings.default_dynamic_scheme.options.soft" },
+  { value = "dysfunctional", label_key = "settings.default_dynamic_scheme.options.dysfunctional" },
+  { value = "muted", label_key = "settings.default_dynamic_scheme.options.muted" },
+]
+
+# The "wallust" scheme is not a host generator: it shells out to this command,
+# which must write <name>.json into ~/.config/noctalia/palettes and exit 0.
+[[setting]]
+key = "wallust_command"
+type = "string"
+label_key = "settings.wallust_command.label"
+description_key = "settings.wallust_command.description"
+default = ""
+
+[[setting]]
+key = "wallust_palette"
+type = "string"
+label_key = "settings.wallust_palette.label"
+description_key = "settings.wallust_palette.description"
+default = "Wallust"
+
+[[setting]]
+key = "wallust_fallback"
+type = "string"
+label_key = "settings.wallust_fallback.label"
+description_key = "settings.wallust_fallback.description"
+default = "vibrant"
+
+[[setting]]
+key = "remember_dynamic_scheme"
+type = "bool"
+label_key = "settings.remember_dynamic_scheme.label"
+description_key = "settings.remember_dynamic_scheme.description"
+default = true
+
+[[setting]]
+key = "luma_threshold"
+type = "int"
+label_key = "settings.luma_threshold.label"
+description_key = "settings.luma_threshold.description"
+default = 45
+min = 0
+max = 100
+
+[[setting]]
+key = "aliases"
+type = "string_map"
+label_key = "settings.aliases.label"
+description_key = "settings.aliases.description"
+
+[[setting]]
+key = "notify_on_apply"
+type = "bool"
+label_key = "settings.notify_on_apply.label"
+description_key = "settings.notify_on_apply.description"
+default = false
+
+[[service]]
+id = "auto-theme"
+entry = "auto-theme.luau"

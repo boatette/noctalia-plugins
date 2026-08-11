@@ -1,0 +1,73 @@
+{
+  "label": {
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds"
+  },
+  "settings": {
+    "show_seconds": {
+      "label": "Show Seconds",
+      "description": "Add the seconds columns. With it off the face redraws once a minute."
+    },
+    "hour_format": {
+      "label": "Hour Format",
+      "description": "24-hour counts 0-23; 12-hour counts 1-12 with no AM/PM indicator.",
+      "options": {
+        "24": "24-hour",
+        "12": "12-hour"
+      }
+    },
+    "show_headers": {
+      "label": "Show Column Headers",
+      "description": "Label each group Hours / Minutes / Seconds."
+    },
+    "show_labels": {
+      "label": "Show Row Legend",
+      "description": "Print the 8 / 4 / 2 / 1 row weights down the right-hand side."
+    },
+    "show_digits": {
+      "label": "Show Decimal Readout",
+      "description": "Print the decimal time under the grid, one digit per column."
+    },
+    "show_separators": {
+      "label": "Show Group Separators",
+      "description": "Draw a rule between the hours, minutes and seconds groups."
+    },
+    "led_size": {
+      "label": "LED Size",
+      "description": "Diameter of one LED, in logical pixels."
+    },
+    "led_gap": {
+      "label": "LED Spacing",
+      "description": "Gap between LEDs, in logical pixels. Four LEDs plus three gaps must clear the bar thickness."
+    },
+    "group_gap": {
+      "label": "Group Spacing",
+      "description": "Gap between the hours, minutes and seconds groups."
+    },
+    "font_size": {
+      "label": "Text Size",
+      "description": "Size of the column headers, row legend and decimal readout."
+    },
+    "on_color": {
+      "label": "Lit Color",
+      "description": "Color of an LED that is on."
+    },
+    "off_color": {
+      "label": "Unlit Color",
+      "description": "Color of an LED that is off. Also used for the group separators."
+    },
+    "text_color": {
+      "label": "Text Color",
+      "description": "Color of the column headers, row legend and decimal readout."
+    },
+    "glow": {
+      "label": "Glow",
+      "description": "Blur radius applied to lit LEDs only. 0 draws hard-edged dots."
+    },
+    "tooltip_format": {
+      "label": "Tooltip Format",
+      "description": "strftime pattern shown on hover, e.g. %A, %d %B %Y - %H:%M:%S. Empty hides the tooltip."
+    }
+  }
+}

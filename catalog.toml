@@ -1,0 +1,25 @@
+[[plugin]]
+id = "boatette/auto-theme"
+name = "Auto Theme"
+version = "1.0.1"
+updated_at = 1785860204
+added_at = 1785571102
+author = "boatette"
+license = "MIT"
+icon = "palette"
+description = "Set the global color scheme and light/dark mode from the wallpaper's directory."
+plugin_api = 9
+tags = ["theme", "wallpaper"]
+
+[[plugin]]
+id = "boatette/binary-clock"
+name = "Binary Clock"
+version = "1.0.0"
+updated_at = 1786372503
+added_at = 1786372503
+author = "boatette"
+license = "MIT"
+icon = "binary"
+description = "A BCD binary clock as a bar widget and a desktop widget."
+plugin_api = 14
+tags = ["clock", "time", "bar", "desktop"]

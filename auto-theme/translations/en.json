@@ -1,0 +1,74 @@
+{
+  "settings": {
+    "enabled": {
+      "label": "Enabled",
+      "description": "Apply a theme automatically when the wallpaper changes"
+    },
+    "wallpaper_root": {
+      "label": "Wallpaper Root",
+      "description": "Paths are mapped relative to this folder. Wallpapers outside it are ignored."
+    },
+    "dark_dir_names": {
+      "label": "Dark Folder Names",
+      "description": "Comma-separated folder names that mean dark mode"
+    },
+    "light_dir_names": {
+      "label": "Light Folder Names",
+      "description": "Comma-separated folder names that mean light mode"
+    },
+    "dynamic_dir_names": {
+      "label": "Dynamic Folder Names",
+      "description": "Comma-separated folder names whose wallpapers generate their palette from the image instead of using a named scheme"
+    },
+    "default_dynamic_scheme": {
+      "label": "Default Dynamic Scheme",
+      "description": "Generator used for a dynamic wallpaper that has no remembered scheme",
+      "options": {
+        "wallust": "Wallust",
+        "m3-tonal-spot": "Material You — Tonal Spot",
+        "m3-content": "Material You — Content",
+        "m3-fruit-salad": "Material You — Fruit Salad",
+        "m3-rainbow": "Material You — Rainbow",
+        "m3-monochrome": "Material You — Monochrome",
+        "vibrant": "Vibrant",
+        "faithful": "Faithful",
+        "soft": "Soft",
+        "dysfunctional": "Dysfunctional",
+        "muted": "Muted"
+      }
+    },
+    "wallust_command": {
+      "label": "Wallust Command",
+      "description": "Helper run for the Wallust scheme; it is passed the wallpaper path and must write the palette file"
+    },
+    "wallust_palette": {
+      "label": "Wallust Palette Name",
+      "description": "Name of the custom palette the helper writes, without the .json suffix"
+    },
+    "wallust_fallback": {
+      "label": "Wallust Fallback Scheme",
+      "description": "Generator used when the helper is unset or fails"
+    },
+    "remember_dynamic_scheme": {
+      "label": "Remember Scheme Per Wallpaper",
+      "description": "When you change the generator while a dynamic wallpaper is active, remember it for that wallpaper and restore it next time"
+    },
+    "luma_threshold": {
+      "label": "Luma Threshold",
+      "description": "Perceptual lightness (CIELAB L*, 0-100) above which a dynamic wallpaper with no Light/Dark parent folder is treated as light. Requires ImageMagick."
+    },
+    "aliases": {
+      "label": "Folder Aliases",
+      "description": "Override how a folder name resolves, e.g. Rose-Pine-Moon = community:Rosé Pine Moon. Prefix with builtin:, community:, custom:, wallpaper: or skip:"
+    },
+    "notify_on_apply": {
+      "label": "Notify On Apply",
+      "description": "Show a notification each time a theme is applied"
+    }
+  },
+  "notify": {
+    "applied": "Auto Theme",
+    "unresolved-title": "Auto Theme: unknown palette",
+    "unresolved-body": "No builtin, community or custom palette matches the folder \"{name}\". The color scheme was left unchanged."
+  }
+}

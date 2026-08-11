@@ -64,14 +64,12 @@ options = [
   { value = "muted", label_key = "settings.default_dynamic_scheme.options.muted" },
 ]
 
-# The "wallust" scheme is not a host generator: it shells out to this command,
-# which must write <name>.json into ~/.config/noctalia/palettes and exit 0.
 [[setting]]
 key = "wallust_command"
 type = "string"
 label_key = "settings.wallust_command.label"
 description_key = "settings.wallust_command.description"
-default = ""
+default = "wallust-palette"
 
 [[setting]]
 key = "wallust_palette"

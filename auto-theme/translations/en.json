@@ -39,7 +39,7 @@
     },
     "wallust_command": {
       "label": "Wallust Command",
-      "description": "Helper run for the Wallust scheme; it is passed the wallpaper path and must write the palette file"
+      "description": "Helper run for the Wallust scheme; it is passed the wallpaper path and must write the palette file. A bare name is looked up on PATH"
     },
     "wallust_palette": {
       "label": "Wallust Palette Name",

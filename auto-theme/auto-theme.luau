@@ -118,7 +118,7 @@ local function loadConfig()
     lumaThreshold = tonumber(get("luma_threshold", 45)) or 45,
     aliases = get("aliases", {}) or {},
     notify = get("notify_on_apply", false),
-    wallustCommand = trim(get("wallust_command", "")),
+    wallustCommand = trim(get("wallust_command", "wallust-palette")),
     wallustPalette = trim(get("wallust_palette", "Wallust")),
     wallustFallback = get("wallust_fallback", "vibrant"),
   }
@@ -349,16 +349,13 @@ local function applyScheme(mode, scheme, path)
     applyResolved(mode, paletteFor(cfg.wallustFallback), path)
   end
 
-  -- Prefer the configured command, then PATH, since a Nix store path in
-  -- settings.toml can go stale after a rebuild.
+  -- A bare name by default, resolved through PATH at exec time, so the setting
+  -- outlives whatever provisioned the helper. commandExists also accepts an
+  -- absolute path, for setups that would rather pin one.
   local helper = cfg.wallustCommand
   if helper == "" or not noctalia.commandExists(helper) then
-    if noctalia.commandExists("wallust-palette") then
-      helper = "wallust-palette"
-    else
-      degrade(helper == "" and "wallust_command is unset" or ("wallust_command " .. helper .. " is missing"))
-      return
-    end
+    degrade(("wallust helper %q not found"):format(helper))
+    return
   end
 
   -- Target the mode we're heading for, not the one still recorded in [theme].

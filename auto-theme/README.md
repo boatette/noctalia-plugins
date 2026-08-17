@@ -97,17 +97,31 @@ plugin's data directory.
 
 1. the path's mode folder — `Dark/Dynamic/…`, `Light/Dynamic/…`
 2. a remembered mode for that wallpaper
-3. perceptual lightness vs *Luma Threshold* (default 45), via
-   `magick <img> -colorspace LAB -channel R -separate -resize 1x1! -format '%[fx:mean]' info:`
+3. perceptual lightness vs *Luma Threshold* (default 45)
 
 Step 3 only matters for a `Dynamic` folder with no `Dark`/`Light` parent, such as
-the Wallhaven download directory. Without ImageMagick the mode is left unchanged.
+the Wallhaven download directory.
+
+It needs one of these on `PATH`, tried in order — with none of them the mode is
+left unchanged and a notification says so:
+
+| Backend | Command |
+|---|---|
+| ImageMagick 7 | `magick <img> -colorspace LAB -channel R -separate -resize 1x1! -format '%[fx:mean]' info:` |
+| ImageMagick 6 | same, as `convert` |
+| ffmpeg | `ffmpeg -i <img> -frames:v 1 -vf 'scale=64:64,format=gray,signalstats,metadata=print:file=-' -f null -` |
 
 Use **CIELAB L\***, not `-colorspace Gray`. IM7's Gray is linear-light, which does
 not just shift the scale — it reorders images. A dark space photo measured `0.557`
 under Gray while its true L\* was `0.114`, so it was classified light. The 45
 default was calibrated against the `Dark/` and `Light/` trees: darks measured
 0.21–0.51, lights 0.46–0.92, and 45 misfiles 1 of 16 where 55 misfiles 3.
+
+ffmpeg's `signalstats` reports gamma-encoded `YAVG`, so it is linearised and put
+through the L\* transfer before comparison — the threshold means the same thing on
+either backend. Measured against ImageMagick over 14 wallpapers the two agree to
+~1.5 L\* on average, and picked the same side of the default threshold on every
+image except one that sits within 1 point of it.
 
 ## Notes
 
@@ -116,7 +130,7 @@ default was calibrated against the `Dark/` and `Light/` trees: darks measured
 - `wallpaper_changed` fires **once per output**, so a multi-monitor setup delivers
   the same path several times a few ms apart. Repeats within 1.5s are collapsed —
   without that, each copy reads `settings.toml` before the first write lands and
-  redoes the work (including re-running `magick`).
+  redoes the work (including re-running the luma probe).
 - `colors_changed` is delivered roughly **2.6s after** the palette actually changes.
   The plugin ignores colors/mode events for 4s after its own writes so it never
   records the intermediate state of its own two-step apply as a user choice, and

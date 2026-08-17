@@ -37,6 +37,8 @@ local memoryPath = nil
 local suppressUntil = 0
 local dispatchedPath = nil
 local dispatchedAt = 0
+local lumaBackend = nil -- backend table, or false once we know none is installed
+local warnedNoLuma = false
 
 -- Latin-1 accented letters seen in palette names, folded before :lower().
 local DIACRITICS = {
@@ -91,6 +93,70 @@ local function get(key, fallback)
   local v = noctalia.getConfig(key)
   if v == nil or v == "" then return fallback end
   return v
+end
+
+-- ffmpeg reports gamma-encoded Y'; fold it back to CIELAB L* so luma_threshold
+-- means the same thing whichever backend is installed.
+local function srgbToLstar(v)
+  if v < 0 then v = 0 elseif v > 1 then v = 1 end
+  local lin = (v <= 0.04045) and (v / 12.92) or (((v + 0.055) / 1.055) ^ 2.4)
+  local f = (lin > 0.008856) and (lin ^ (1 / 3)) or (7.787 * lin + 16 / 116)
+  return 116 * f - 16
+end
+
+local function parseMagick(stdout)
+  local mean = tonumber(trim(stdout))
+  -- IM stores LAB's L channel as 0..1 over L* 0..100.
+  return mean and mean * 100 or nil
+end
+
+-- Perceptual lightness, in preference order. Each entry yields L* on 0..100.
+-- ImageMagick is the reference; ffmpeg is here because it is far more commonly
+-- already installed, and without a fallback a missing `magick` silently disables
+-- auto light/dark for every Dynamic wallpaper.
+local LUMA_BACKENDS = {
+  {
+    cmd = "magick", -- ImageMagick 7
+    build = function(path)
+      return "magick " .. shellQuote(path) .. " -colorspace LAB -channel R -separate"
+        .. " -resize 1x1! -format '%[fx:mean]' info:"
+    end,
+    parse = parseMagick,
+  },
+  {
+    cmd = "convert", -- ImageMagick 6
+    build = function(path)
+      return "convert " .. shellQuote(path) .. " -colorspace LAB -channel R -separate"
+        .. " -resize 1x1! -format '%[fx:mean]' info:"
+    end,
+    parse = parseMagick,
+  },
+  {
+    cmd = "ffmpeg",
+    build = function(path)
+      -- signalstats' YAVG over a 64x64 gray downscale: one frame, text on stdout.
+      return "ffmpeg -v error -nostdin -i " .. shellQuote(path) .. " -frames:v 1"
+        .. " -vf 'scale=64:64,format=gray,signalstats,metadata=print:file=-'"
+        .. " -f null -"
+    end,
+    parse = function(stdout)
+      local avg = tonumber(tostring(stdout):match("YAVG=([%d%.]+)"))
+      return avg and srgbToLstar(avg / 255) or nil
+    end,
+  },
+}
+
+local function detectLumaBackend()
+  if lumaBackend ~= nil then return lumaBackend end
+  for _, backend in ipairs(LUMA_BACKENDS) do
+    if noctalia.commandExists(backend.cmd) then
+      lumaBackend = backend
+      noctalia.log("auto-theme: luma backend is " .. backend.cmd)
+      return backend
+    end
+  end
+  lumaBackend = false
+  return false
 end
 
 local function loadConfig()
@@ -232,8 +298,14 @@ end
 
 local function saveMemory()
   if not memoryPath then return end
-  local encoded = noctalia.json.encode(memory, true)
-  if encoded then noctalia.writeFile(memoryPath, encoded) end
+  -- One argument only: the host's encode has no pretty-print flag, and passing a
+  -- second one returned "" -- which then truncated dynamic.json on every write.
+  local encoded = noctalia.json.encode(memory)
+  if type(encoded) == "string" and encoded ~= "" then
+    noctalia.writeFile(memoryPath, encoded)
+  else
+    noctalia.log("auto-theme: memory encode failed, keeping the previous dynamic.json")
+  end
 end
 
 -- Find the mode segment anywhere in the path, so Dark/Catppuccin/x.png and
@@ -277,6 +349,11 @@ local function applyResolved(mode, palette, wallpaperPath)
     and (palette.source ~= theme.source or palette.name ~= selectionOf(theme))
 
   if not needMode and not needPalette then
+    -- Suppress anyway. A wallpaper switch regenerates a wallpaper-source palette
+    -- and fires colors-changed even when the target theme already matches; left
+    -- unsuppressed, learn() banks the outgoing mode against the incoming
+    -- wallpaper, and that remembered mode then outranks luma detection forever.
+    suppressUntil = noctalia.nowMs() + SUPPRESS_MS
     noctalia.log("auto-theme: already correct, nothing to do")
     return
   end
@@ -327,8 +404,18 @@ local function applyDynamic(mapped, path)
     return
   end
 
-  if not noctalia.commandExists("magick") then
-    noctalia.log("auto-theme: magick not found, leaving theme mode unchanged")
+  local backend = detectLumaBackend()
+  if not backend then
+    -- Loud once per session: silently doing nothing here reads as "the plugin
+    -- is broken", with the reason buried in the log.
+    if not warnedNoLuma then
+      warnedNoLuma = true
+      noctalia.notifyError(
+        noctalia.tr("notify.no-luma-title"),
+        noctalia.tr("notify.no-luma-body")
+      )
+    end
+    noctalia.log("auto-theme: no luma backend (magick, convert or ffmpeg), leaving theme mode unchanged")
     applyScheme(nil, scheme, path)
     return
   end
@@ -336,16 +423,18 @@ local function applyDynamic(mapped, path)
   -- CIELAB L*, not -colorspace Gray: IM7's Gray is linear-light and misranks
   -- dark images as lighter than they are.
   noctalia.runAsync(
-    "magick " .. shellQuote(path) .. " -colorspace LAB -channel R -separate"
-      .. " -resize 1x1! -format '%[fx:mean]' info:",
+    backend.build(path),
     function(result)
-      local mean = result and tonumber(trim(result.stdout or ""))
+      local lstar = result and backend.parse(result.stdout or "")
       local detected = nil
-      if mean then
-        detected = (mean * 100 > cfg.lumaThreshold) and "light" or "dark"
-        noctalia.log(("auto-theme: luma %.3f -> %s"):format(mean, detected))
+      if lstar then
+        detected = (lstar > cfg.lumaThreshold) and "light" or "dark"
+        noctalia.log(("auto-theme: L* %.1f via %s -> %s"):format(lstar, backend.cmd, detected))
       else
-        noctalia.log("auto-theme: luma detection failed, leaving theme mode unchanged")
+        noctalia.log(
+          "auto-theme: luma detection via " .. backend.cmd
+            .. " failed, leaving theme mode unchanged"
+        )
       end
       applyScheme(detected, scheme, path)
     end,
@@ -451,5 +540,7 @@ end
 
 function onConfigChanged()
   loadConfig()
+  -- Re-probe: the user may have installed ImageMagick since the last reload.
+  lumaBackend, warnedNoLuma = nil, false
   noctalia.log("auto-theme: settings reloaded")
 end

@@ -42,7 +42,7 @@
     },
     "luma_threshold": {
       "label": "Luma Threshold",
-      "description": "Perceptual lightness (CIELAB L*, 0-100) above which a dynamic wallpaper with no Light/Dark parent folder is treated as light. Requires ImageMagick."
+      "description": "Perceptual lightness (CIELAB L*, 0-100) above which a dynamic wallpaper with no Light/Dark parent folder is treated as light. Requires ImageMagick or ffmpeg."
     },
     "aliases": {
       "label": "Folder Aliases",
@@ -56,6 +56,8 @@
   "notify": {
     "applied": "Auto Theme",
     "unresolved-title": "Auto Theme: unknown palette",
-    "unresolved-body": "No builtin, community or custom palette matches the folder \"{name}\". The color scheme was left unchanged."
+    "unresolved-body": "No builtin, community or custom palette matches the folder \"{name}\". The color scheme was left unchanged.",
+    "no-luma-title": "Auto Theme: cannot detect light/dark",
+    "no-luma-body": "This dynamic wallpaper has no Light/Dark parent folder, so the mode has to be read from the image. Install ImageMagick or ffmpeg to enable that. The theme mode was left unchanged."
   }
 }

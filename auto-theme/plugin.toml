@@ -51,7 +51,6 @@ label_key = "settings.default_dynamic_scheme.label"
 description_key = "settings.default_dynamic_scheme.description"
 default = "m3-tonal-spot"
 options = [
-  { value = "wallust", label_key = "settings.default_dynamic_scheme.options.wallust" },
   { value = "m3-tonal-spot", label_key = "settings.default_dynamic_scheme.options.m3-tonal-spot" },
   { value = "m3-content", label_key = "settings.default_dynamic_scheme.options.m3-content" },
   { value = "m3-fruit-salad", label_key = "settings.default_dynamic_scheme.options.m3-fruit-salad" },
@@ -63,27 +62,6 @@ options = [
   { value = "dysfunctional", label_key = "settings.default_dynamic_scheme.options.dysfunctional" },
   { value = "muted", label_key = "settings.default_dynamic_scheme.options.muted" },
 ]
-
-[[setting]]
-key = "wallust_command"
-type = "string"
-label_key = "settings.wallust_command.label"
-description_key = "settings.wallust_command.description"
-default = "wallust-palette"
-
-[[setting]]
-key = "wallust_palette"
-type = "string"
-label_key = "settings.wallust_palette.label"
-description_key = "settings.wallust_palette.description"
-default = "Wallust"
-
-[[setting]]
-key = "wallust_fallback"
-type = "string"
-label_key = "settings.wallust_fallback.label"
-description_key = "settings.wallust_fallback.description"
-default = "vibrant"
 
 [[setting]]
 key = "remember_dynamic_scheme"

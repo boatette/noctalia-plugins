@@ -31,12 +31,6 @@ local SUPPRESS_MS = 4000
 -- wallpaper_changed fires once per output; collapse duplicates within this window.
 local DEDUPE_MS = 1500
 
--- Not a host generator: names our own wallust pipeline.
-local WALLUST_SCHEME = "wallust"
-
--- Wallust runs over a downsampled image; can take a few seconds.
-local WALLUST_TIMEOUT_MS = 20000
-
 local cfg = {}
 local memory = nil -- { [wallpaperPath] = { scheme = ..., mode = ... } }
 local memoryPath = nil
@@ -118,15 +112,7 @@ local function loadConfig()
     lumaThreshold = tonumber(get("luma_threshold", 45)) or 45,
     aliases = get("aliases", {}) or {},
     notify = get("notify_on_apply", false),
-    wallustCommand = trim(get("wallust_command", "wallust-palette")),
-    wallustPalette = trim(get("wallust_palette", "Wallust")),
-    wallustFallback = get("wallust_fallback", "vibrant"),
   }
-
-  -- Avoid recursing straight back into the branch that just failed.
-  if cfg.wallustFallback == WALLUST_SCHEME then
-    cfg.wallustFallback = "vibrant"
-  end
 end
 
 -- Read the direct (non-nested) keys of one TOML section.
@@ -287,10 +273,8 @@ end
 local function applyResolved(mode, palette, wallpaperPath)
   local theme = readTheme()
   local needMode = mode ~= nil and mode ~= theme.mode
-  -- generate=true forces a re-apply even when source/name look unchanged,
-  -- because the file behind them was just regenerated.
   local needPalette = palette ~= nil
-    and (palette.generate or palette.source ~= theme.source or palette.name ~= selectionOf(theme))
+    and (palette.source ~= theme.source or palette.name ~= selectionOf(theme))
 
   if not needMode and not needPalette then
     noctalia.log("auto-theme: already correct, nothing to do")
@@ -328,53 +312,8 @@ local function applyResolved(mode, palette, wallpaperPath)
   )
 end
 
-local function paletteFor(scheme)
-  if scheme == WALLUST_SCHEME then
-    return { source = "custom", name = cfg.wallustPalette, generate = true }
-  end
-  return { source = "wallpaper", name = scheme }
-end
-
--- Regenerate the wallust palette before applying it; degrade to a host
--- generator on any failure rather than leaving a stale palette applied.
 local function applyScheme(mode, scheme, path)
-  local palette = paletteFor(scheme)
-  if not palette.generate then
-    applyResolved(mode, palette, path)
-    return
-  end
-
-  local function degrade(why)
-    noctalia.log(("auto-theme: %s, falling back to %s"):format(why, cfg.wallustFallback))
-    applyResolved(mode, paletteFor(cfg.wallustFallback), path)
-  end
-
-  -- A bare name by default, resolved through PATH at exec time, so the setting
-  -- outlives whatever provisioned the helper. commandExists also accepts an
-  -- absolute path, for setups that would rather pin one.
-  local helper = cfg.wallustCommand
-  if helper == "" or not noctalia.commandExists(helper) then
-    degrade(("wallust helper %q not found"):format(helper))
-    return
-  end
-
-  -- Target the mode we're heading for, not the one still recorded in [theme].
-  local target = mode
-  if target ~= "dark" and target ~= "light" then
-    target = readTheme().mode
-  end
-  if target ~= "dark" and target ~= "light" then
-    target = "dark"
-  end
-
-  local command = ("%s --mode %s %s"):format(helper, target, shellQuote(path))
-  noctalia.runAsync(command, function(result)
-    if not result or result.exitCode ~= 0 then
-      degrade("wallust failed: " .. trim((result and result.stderr) or "no result"))
-      return
-    end
-    applyResolved(mode, palette, path)
-  end, WALLUST_TIMEOUT_MS)
+  applyResolved(mode, { source = "wallpaper", name = scheme }, path)
 end
 
 local function applyDynamic(mapped, path)
@@ -458,21 +397,6 @@ local function applyForPath(path)
   applyResolved(mapped.mode, palette, path)
 end
 
--- Regenerate the wallust palette after a manual light/dark toggle, since the
--- helper only fills the mode it was last asked for.
-local function refreshForMode()
-  if not cfg.enabled then return end
-  if noctalia.nowMs() < suppressUntil then return end -- our own write
-
-  local theme = readTheme()
-  if theme.source ~= "custom" or theme.custom_palette ~= cfg.wallustPalette then return end
-
-  local path = currentWallpaper()
-  if not path or path == "" then return end
-
-  applyScheme(theme.mode, WALLUST_SCHEME, path)
-end
-
 -- Record what the user picked, so returning to this wallpaper restores it.
 local function learn()
   if not cfg.enabled or not cfg.remember then return end
@@ -480,16 +404,10 @@ local function learn()
 
   local theme = readTheme()
 
-  -- Only track our own wallust scheme and host wallpaper schemes; any other
-  -- custom palette is a deliberate escape from dynamic theming.
-  local scheme
-  if theme.source == "wallpaper" then
-    scheme = theme.wallpaper_scheme
-  elseif theme.source == "custom" and theme.custom_palette == cfg.wallustPalette then
-    scheme = WALLUST_SCHEME
-  else
-    return
-  end
+  -- Only track host wallpaper schemes; anything else is a deliberate escape
+  -- from dynamic theming.
+  if theme.source ~= "wallpaper" then return end
+  local scheme = theme.wallpaper_scheme
 
   local path = currentWallpaper()
   if not path or path == "" then return end
@@ -527,7 +445,6 @@ function onIpc(event, payload)
   elseif event == "colors-changed" then
     learn()
   elseif event == "theme-mode-changed" then
-    refreshForMode()
     learn()
   end
 end

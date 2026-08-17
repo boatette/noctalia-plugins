@@ -24,7 +24,6 @@
       "label": "Default Dynamic Scheme",
       "description": "Generator used for a dynamic wallpaper that has no remembered scheme",
       "options": {
-        "wallust": "Wallust",
         "m3-tonal-spot": "Material You — Tonal Spot",
         "m3-content": "Material You — Content",
         "m3-fruit-salad": "Material You — Fruit Salad",
@@ -36,18 +35,6 @@
         "dysfunctional": "Dysfunctional",
         "muted": "Muted"
       }
-    },
-    "wallust_command": {
-      "label": "Wallust Command",
-      "description": "Helper run for the Wallust scheme; it is passed the wallpaper path and must write the palette file. A bare name is looked up on PATH"
-    },
-    "wallust_palette": {
-      "label": "Wallust Palette Name",
-      "description": "Name of the custom palette the helper writes, without the .json suffix"
-    },
-    "wallust_fallback": {
-      "label": "Wallust Fallback Scheme",
-      "description": "Generator used when the helper is unset or fails"
     },
     "remember_dynamic_scheme": {
       "label": "Remember Scheme Per Wallpaper",

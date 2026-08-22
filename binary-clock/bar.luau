@@ -1,13 +1,6 @@
 --!nonstrict
--- boatette/binary-clock - bar widget: LEDs only, full time goes in the tooltip.
---
--- Side bars transpose the grid instead of rotating it, so bit weights stay in
--- a fixed reading order regardless of dock edge.
---
--- No onClick: left click is bound in plugin.toml instead, so it stays visible
--- and rebindable in the settings editor.
 
-local ROW_WEIGHTS = { 8, 4, 2, 1 } -- top (or leftmost) cell is the 8s bit
+local ROW_WEIGHTS = { 8, 4, 2, 1 }
 
 local cfg = {}
 
@@ -25,8 +18,6 @@ local function readConfig()
   }
 end
 
--- One digit: `bits` lit-capable cells at the end of a four-cell run, so every
--- digit occupies the same extent and rows stay aligned.
 local function digit(key, value, bits, vertical)
   local cells = {}
   for i = 1, 4 do
@@ -66,12 +57,8 @@ local function displayHour(hour24)
   return hour == 0 and 12 or hour
 end
 
--- os.date raises on an unknown specifier instead of passing it through, which
--- would kill render() every tick over a typo. Drop the tooltip once instead.
 local warnedFormat = nil
 
--- Uses os.date directly rather than the `now` the LEDs were built from, since
--- os.time() round-trips a table as UTC and would shift the tooltip.
 local function setTooltip()
   if cfg.tooltipFormat == "" then
     barWidget.clearTooltip()
@@ -111,8 +98,6 @@ local function render(now)
   setTooltip()
 end
 
--- Re-arm against the wall clock each tick instead of a free-running interval,
--- so the seconds LEDs never visibly drift from other clocks.
 local function scheduleNextTick()
   local period = cfg.showSeconds and 1000 or 60000
   noctalia.setUpdateInterval(math.max(16, period - (noctalia.nowMs() % period)))

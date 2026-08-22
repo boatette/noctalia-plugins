@@ -9,7 +9,6 @@ tags = ["clock", "time", "bar", "desktop"]
 icon = "binary"
 description = "A BCD binary clock as a bar widget and a desktop widget."
 
-# Left click opens the calendar
 [[widget]]
 id = "bar"
 entry = "bar.luau"

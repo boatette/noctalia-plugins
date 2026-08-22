@@ -1,0 +1,97 @@
+{
+  "layout": {
+    "scrolling": "Scrolling",
+    "dwindle": "Dwindle"
+  },
+  "tooltip": "{current}",
+  "notify": {
+    "title": "Umbriel layout"
+  },
+  "error": {
+    "title": "Umbriel layout",
+    "exit": "umbriel msg exited with status {code}",
+    "spawn": "Could not run umbriel msg."
+  },
+  "settings": {
+    "display_mode": {
+      "label": "Display",
+      "description": "What the widget shows for the active layout.",
+      "options": {
+        "icon": "Icon only",
+        "letter": "Letter only",
+        "word": "Word only",
+        "icon_letter": "Icon and letter",
+        "icon_word": "Icon and word"
+      }
+    },
+    "scrolling_glyph": {
+      "label": "Scrolling Icon",
+      "description": "Glyph shown while the workspace uses the scrolling layout."
+    },
+    "dwindle_glyph": {
+      "label": "Dwindle Icon",
+      "description": "Glyph shown while the workspace uses the dwindle layout."
+    },
+    "scrolling_word": {
+      "label": "Scrolling Word",
+      "description": "Text for the scrolling layout. Empty uses the translated name."
+    },
+    "dwindle_word": {
+      "label": "Dwindle Word",
+      "description": "Text for the dwindle layout. Empty uses the translated name."
+    },
+    "scrolling_letter": {
+      "label": "Scrolling Letter",
+      "description": "Short form for the scrolling layout. Empty uses the first character of the word."
+    },
+    "dwindle_letter": {
+      "label": "Dwindle Letter",
+      "description": "Short form for the dwindle layout. Empty uses the first character of the word."
+    },
+    "color": {
+      "label": "Color",
+      "description": "Color of the icon and the text."
+    },
+    "glyph_size": {
+      "label": "Icon Size",
+      "description": "Size of the layout icon, in logical pixels."
+    },
+    "font_size": {
+      "label": "Text Size",
+      "description": "Size of the letter or word, in logical pixels."
+    },
+    "gap": {
+      "label": "Spacing",
+      "description": "Gap between the icon and the text when both are shown."
+    },
+    "uppercase_letter": {
+      "label": "Uppercase Letter",
+      "description": "Capitalise the letter derived from the word. Ignored when the letter is set explicitly."
+    },
+    "show_tooltip": {
+      "label": "Show Tooltip",
+      "description": "Name the current layout, and the one a click switches to, on hover."
+    },
+    "notify_on_toggle": {
+      "label": "Notify On Switch",
+      "description": "Send a notification naming the layout after each switch."
+    },
+    "umbriel_config_path": {
+      "label": "Umbriel Config",
+      "description": "Config file to read the base layout and workspace rules from. Empty uses ~/.config/umbriel/config.toml."
+    },
+    "fallback_mode": {
+      "label": "Fallback Layout",
+      "description": "Layout assumed when the workspace watcher is unavailable and umbriel's config cannot be read. Automatic uses [layout] mode from the config.",
+      "options": {
+        "auto": "Automatic (read umbriel config)",
+        "scrolling": "Scrolling",
+        "dwindle": "Dwindle"
+      }
+    },
+    "watch_command": {
+      "label": "Workspace Watch Command",
+      "description": "Command that prints '<output> <workspace>' whenever the active workspace changes. Empty uses umbriel-workspace-watch. Takes effect on reload."
+    }
+  }
+}

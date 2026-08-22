@@ -1,14 +1,6 @@
 --!nonstrict
--- boatette/binary-clock - desktop widget: full BCD desk-clock face with column
--- headers, an 8/4/2/1 row legend, and a decimal readout underneath.
---
--- BCD, not plain binary: each digit gets its own column, so the readout is a
--- straight column-by-column translation of the LEDs.
---
--- Every column is drawn four cells tall even when the digit needs fewer bits,
--- so columns share a baseline and the legend lines up across all of them.
 
-local ROW_WEIGHTS = { 8, 4, 2, 1 } -- index 1 is the top row
+local ROW_WEIGHTS = { 8, 4, 2, 1 }
 
 local cfg = {}
 
@@ -31,17 +23,14 @@ local function readConfig()
   }
 end
 
--- Height of the LED block alone, for sizing dividers without cross-axis stretch.
 local function gridHeight()
   return 4 * cfg.ledSize + 3 * cfg.ledGap
 end
 
--- Vertical spacing between a group's header, LEDs, and readout.
 local function stackGap()
   return math.max(2, math.floor(cfg.ledGap / 2))
 end
 
--- One digit: `bits` lit-capable cells at the bottom of a four-cell column.
 local function ledColumn(key, value, bits)
   local cells = {}
   for row = 1, 4 do
@@ -74,8 +63,6 @@ local function digitLabel(key, value)
   })
 end
 
--- Header/grid/readout stack for one time unit; shares a height with the
--- dividers and legend so the outer row can just center everything.
 local function group(key, headerKey, tens, tensBits, units)
   local parts = {}
 
@@ -103,7 +90,6 @@ local function group(key, headerKey, tens, tensBits, units)
   return ui.column({ key = key, gap = stackGap(), align = "center" }, parts)
 end
 
--- Rule between two groups plus the readout's ':'
 local function divider(key)
   local parts = {}
 
@@ -136,7 +122,6 @@ local function divider(key)
   return ui.column({ key = key, gap = stackGap(), align = "center" }, parts)
 end
 
--- The 8/4/2/1 legend, each weight boxed to one LED row height.
 local function legend()
   local rows = {}
   for row = 1, 4 do
@@ -190,7 +175,6 @@ local function render(now)
   desktopWidget.render(ui.row({ gap = cfg.groupGap, align = "center" }, children))
 end
 
--- Second ticks arrive regardless; redraw once a minute when seconds are hidden.
 local lastDrawn = nil
 
 function update()

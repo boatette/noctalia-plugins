@@ -1,0 +1,151 @@
+id = "boatette/umbriel-layout"
+name = "Umbriel Layout"
+version = "1.0.0"
+plugin_api = 14
+author = "boatette"
+license = "MIT"
+dependencies = []
+tags = ["umbriel", "layout", "bar", "compositor"]
+icon = "carousel-horizontal"
+description = "Show the current Umbriel workspace layout (scrolling or dwindle) and click to switch between them."
+
+[[widget]]
+id = "bar"
+entry = "bar.luau"
+
+  [[widget.setting]]
+  key = "display_mode"
+  type = "select"
+  label_key = "settings.display_mode.label"
+  description_key = "settings.display_mode.description"
+  default = "icon"
+  options = [
+    { value = "icon", label_key = "settings.display_mode.options.icon" },
+    { value = "letter", label_key = "settings.display_mode.options.letter" },
+    { value = "word", label_key = "settings.display_mode.options.word" },
+    { value = "icon_letter", label_key = "settings.display_mode.options.icon_letter" },
+    { value = "icon_word", label_key = "settings.display_mode.options.icon_word" },
+  ]
+
+  [[widget.setting]]
+  key = "scrolling_glyph"
+  type = "glyph"
+  label_key = "settings.scrolling_glyph.label"
+  description_key = "settings.scrolling_glyph.description"
+  default = "carousel-horizontal"
+
+  [[widget.setting]]
+  key = "dwindle_glyph"
+  type = "glyph"
+  label_key = "settings.dwindle_glyph.label"
+  description_key = "settings.dwindle_glyph.description"
+  default = "chart-treemap"
+
+  [[widget.setting]]
+  key = "scrolling_word"
+  type = "string"
+  label_key = "settings.scrolling_word.label"
+  description_key = "settings.scrolling_word.description"
+  default = ""
+
+  [[widget.setting]]
+  key = "dwindle_word"
+  type = "string"
+  label_key = "settings.dwindle_word.label"
+  description_key = "settings.dwindle_word.description"
+  default = ""
+
+  [[widget.setting]]
+  key = "scrolling_letter"
+  type = "string"
+  label_key = "settings.scrolling_letter.label"
+  description_key = "settings.scrolling_letter.description"
+  default = ""
+
+  [[widget.setting]]
+  key = "dwindle_letter"
+  type = "string"
+  label_key = "settings.dwindle_letter.label"
+  description_key = "settings.dwindle_letter.description"
+  default = ""
+
+  [[widget.setting]]
+  key = "color"
+  type = "color"
+  label_key = "settings.color.label"
+  description_key = "settings.color.description"
+  default = "on_surface"
+
+  [[widget.setting]]
+  key = "glyph_size"
+  type = "int"
+  label_key = "settings.glyph_size.label"
+  description_key = "settings.glyph_size.description"
+  default = 16
+  min = 8
+  max = 48
+
+  [[widget.setting]]
+  key = "font_size"
+  type = "int"
+  label_key = "settings.font_size.label"
+  description_key = "settings.font_size.description"
+  default = 13
+  min = 6
+  max = 40
+
+  [[widget.setting]]
+  key = "gap"
+  type = "int"
+  label_key = "settings.gap.label"
+  description_key = "settings.gap.description"
+  default = 6
+  min = 0
+  max = 24
+
+  [[widget.setting]]
+  key = "uppercase_letter"
+  type = "bool"
+  label_key = "settings.uppercase_letter.label"
+  description_key = "settings.uppercase_letter.description"
+  default = true
+
+  [[widget.setting]]
+  key = "show_tooltip"
+  type = "bool"
+  label_key = "settings.show_tooltip.label"
+  description_key = "settings.show_tooltip.description"
+  default = true
+
+  [[widget.setting]]
+  key = "notify_on_toggle"
+  type = "bool"
+  label_key = "settings.notify_on_toggle.label"
+  description_key = "settings.notify_on_toggle.description"
+  default = false
+
+  [[widget.setting]]
+  key = "fallback_mode"
+  type = "select"
+  label_key = "settings.fallback_mode.label"
+  description_key = "settings.fallback_mode.description"
+  default = "auto"
+  options = [
+    { value = "auto", label_key = "settings.fallback_mode.options.auto" },
+    { value = "scrolling", label_key = "settings.fallback_mode.options.scrolling" },
+    { value = "dwindle", label_key = "settings.fallback_mode.options.dwindle" },
+  ]
+
+  [[widget.setting]]
+  key = "umbriel_config_path"
+  type = "file"
+  label_key = "settings.umbriel_config_path.label"
+  description_key = "settings.umbriel_config_path.description"
+  default = ""
+
+  [[widget.setting]]
+  key = "watch_command"
+  type = "string"
+  label_key = "settings.watch_command.label"
+  description_key = "settings.watch_command.description"
+  default = ""

@@ -1,10 +1,4 @@
 --!nonstrict
--- boatette/auto-theme: theme mode + color scheme, derived from the wallpaper path.
---
---   <root>/Dark/Catppuccin/x.png  -> theme-mode-set dark  + color-scheme-set builtin Catppuccin
---   <root>/Light/Nord/x.png       -> theme-mode-set light + color-scheme-set builtin Nord
---   <root>/Dark/Dynamic/x.png     -> theme-mode-set dark  + color-scheme-set wallpaper <scheme>
---   <root>/Dynamic/x.png          -> mode from image luma + color-scheme-set wallpaper <scheme>
 
 local STATE_HOME = noctalia.getenv("NOCTALIA_STATE_HOME")
 if not STATE_HOME or STATE_HOME == "" then
@@ -13,34 +7,29 @@ end
 local SETTINGS_PATH = STATE_HOME .. "/settings.toml"
 local COMMUNITY_PALETTE_DIR = STATE_HOME .. "/community-palettes"
 
--- Custom palette dir isn't advertised by the host, so probe both candidates.
 local CUSTOM_PALETTE_DIRS = {
   noctalia.expandPath("~/.config/noctalia/palettes"),
   STATE_HOME .. "/palettes",
 }
 
--- Shipped with the binary; not discoverable at runtime.
 local BUILTIN_PALETTES = {
   "Ayu", "Catppuccin", "Dracula", "Gruvbox", "Rosé Pine",
   "Tokyo-Night", "Eldritch", "Kanagawa", "Nord", "Noctalia",
 }
 
--- Ignore our own colors/theme-mode events for this long after we write.
 local SUPPRESS_MS = 4000
 
--- wallpaper_changed fires once per output; collapse duplicates within this window.
 local DEDUPE_MS = 1500
 
 local cfg = {}
-local memory = nil -- { [wallpaperPath] = { scheme = ..., mode = ... } }
+local memory = nil
 local memoryPath = nil
 local suppressUntil = 0
 local dispatchedPath = nil
 local dispatchedAt = 0
-local lumaBackend = nil -- backend table, or false once we know none is installed
+local lumaBackend = nil
 local warnedNoLuma = false
 
--- Latin-1 accented letters seen in palette names, folded before :lower().
 local DIACRITICS = {
   ["á"] = "a", ["à"] = "a", ["â"] = "a", ["ä"] = "a", ["ã"] = "a", ["å"] = "a",
   ["Á"] = "a", ["À"] = "a", ["Â"] = "a", ["Ä"] = "a", ["Ã"] = "a", ["Å"] = "a",
@@ -55,7 +44,6 @@ local DIACRITICS = {
   ["ñ"] = "n", ["Ñ"] = "n", ["ç"] = "c", ["Ç"] = "c",
 }
 
--- Fold a name to a comparable key: "Rose-Pine" and "Rosé Pine" both -> "rosepine".
 local function norm(s)
   if not s or s == "" then return "" end
   for from, to in pairs(DIACRITICS) do
@@ -95,8 +83,6 @@ local function get(key, fallback)
   return v
 end
 
--- ffmpeg reports gamma-encoded Y'; fold it back to CIELAB L* so luma_threshold
--- means the same thing whichever backend is installed.
 local function srgbToLstar(v)
   if v < 0 then v = 0 elseif v > 1 then v = 1 end
   local lin = (v <= 0.04045) and (v / 12.92) or (((v + 0.055) / 1.055) ^ 2.4)
@@ -106,17 +92,12 @@ end
 
 local function parseMagick(stdout)
   local mean = tonumber(trim(stdout))
-  -- IM stores LAB's L channel as 0..1 over L* 0..100.
   return mean and mean * 100 or nil
 end
 
--- Perceptual lightness, in preference order. Each entry yields L* on 0..100.
--- ImageMagick is the reference; ffmpeg is here because it is far more commonly
--- already installed, and without a fallback a missing `magick` silently disables
--- auto light/dark for every Dynamic wallpaper.
 local LUMA_BACKENDS = {
   {
-    cmd = "magick", -- ImageMagick 7
+    cmd = "magick",
     build = function(path)
       return "magick " .. shellQuote(path) .. " -colorspace LAB -channel R -separate"
         .. " -resize 1x1! -format '%[fx:mean]' info:"
@@ -124,7 +105,7 @@ local LUMA_BACKENDS = {
     parse = parseMagick,
   },
   {
-    cmd = "convert", -- ImageMagick 6
+    cmd = "convert",
     build = function(path)
       return "convert " .. shellQuote(path) .. " -colorspace LAB -channel R -separate"
         .. " -resize 1x1! -format '%[fx:mean]' info:"
@@ -134,7 +115,6 @@ local LUMA_BACKENDS = {
   {
     cmd = "ffmpeg",
     build = function(path)
-      -- signalstats' YAVG over a 64x64 gray downscale: one frame, text on stdout.
       return "ffmpeg -v error -nostdin -i " .. shellQuote(path) .. " -frames:v 1"
         .. " -vf 'scale=64:64,format=gray,signalstats,metadata=print:file=-'"
         .. " -f null -"
@@ -162,7 +142,6 @@ end
 local function loadConfig()
   local root = get("wallpaper_root", nil)
   if not root then
-    -- Only a hint: empty whenever [wallpaper].directory is unset.
     local hint = noctalia.wallpaperDirectory()
     root = (hint and hint ~= "" and hint) or "~/Pictures/Wallpapers"
   end
@@ -181,7 +160,6 @@ local function loadConfig()
   }
 end
 
--- Read the direct (non-nested) keys of one TOML section.
 local function readSection(header)
   local text = noctalia.readFile(SETTINGS_PATH)
   local out = {}
@@ -205,8 +183,6 @@ local function readTheme()
   return readSection("[theme]")
 end
 
--- Read fresh from host state; don't cache, or a racing wallpaper switch could
--- misattribute the change.
 local function currentWallpaper()
   local last = readSection("[wallpaper.last]")
   return last.path
@@ -229,7 +205,6 @@ local function listPalettes(dir)
     local name = entry:match("[^/]+$") or entry
     local base = name:match("^(.*)%.json$")
     if base then
-      -- Community palettes are stored URL-encoded ("Everforest%20Alt.json").
       local decoded = noctalia.string.urlDecode(base)
       out[norm(decoded)] = decoded
     end
@@ -237,12 +212,10 @@ local function listPalettes(dir)
   return out
 end
 
--- Resolve a folder name to { source, name }, or nil when nothing matches.
 local function resolvePalette(folder)
   local key = norm(folder)
   if key == "" then return nil end
 
-  -- 1. explicit alias: "source:name", or a bare name reusing the normal order
   local alias = cfg.aliases[folder] or cfg.aliases[key]
   if alias and alias ~= "" then
     local source, name = tostring(alias):match("^(%a+):(.*)$")
@@ -253,29 +226,21 @@ local function resolvePalette(folder)
     folder, key = alias, norm(alias)
   end
 
-  -- 2. builtin
   for _, name in ipairs(BUILTIN_PALETTES) do
     if norm(name) == key then
       return { source = "builtin", name = name }
     end
   end
 
-  -- 3. community
   local community = listPalettes(COMMUNITY_PALETTE_DIR)
   if community[key] then
     return { source = "community", name = community[key] }
   end
 
-  -- 4. custom
   for _, dir in ipairs(CUSTOM_PALETTE_DIRS) do
-    local entries = noctalia.listDir(dir)
-    if entries then
-      for _, entry in ipairs(entries) do
-        local name = entry:match("[^/]+$") or entry
-        if norm(name) == key then
-          return { source = "custom", name = name }
-        end
-      end
+    local custom = listPalettes(dir)
+    if custom[key] then
+      return { source = "custom", name = custom[key] }
     end
   end
 
@@ -298,8 +263,6 @@ end
 
 local function saveMemory()
   if not memoryPath then return end
-  -- One argument only: the host's encode has no pretty-print flag, and passing a
-  -- second one returned "" -- which then truncated dynamic.json on every write.
   local encoded = noctalia.json.encode(memory)
   if type(encoded) == "string" and encoded ~= "" then
     noctalia.writeFile(memoryPath, encoded)
@@ -308,15 +271,12 @@ local function saveMemory()
   end
 end
 
--- Find the mode segment anywhere in the path, so Dark/Catppuccin/x.png and
--- Catppuccin/Dark/x.png both resolve.
 local function mapPath(abs)
-  -- Match on a segment boundary, not just a prefix.
   if abs:sub(1, #cfg.root) ~= cfg.root then return nil end
   if abs:sub(#cfg.root + 1, #cfg.root + 1) ~= "/" then return nil end
   local rel = abs:sub(#cfg.root + 1)
   local segs = splitPath(rel)
-  table.remove(segs) -- drop the filename
+  table.remove(segs)
   if #segs == 0 then return { mode = nil, folder = nil } end
 
   local modeIdx, mode
@@ -333,7 +293,6 @@ local function mapPath(abs)
 
   local folder
   if modeIdx then
-    -- Prefer the segment below the mode folder, then the one above it.
     folder = segs[modeIdx + 1] or segs[modeIdx - 1]
   else
     folder = segs[#segs]
@@ -349,10 +308,6 @@ local function applyResolved(mode, palette, wallpaperPath)
     and (palette.source ~= theme.source or palette.name ~= selectionOf(theme))
 
   if not needMode and not needPalette then
-    -- Suppress anyway. A wallpaper switch regenerates a wallpaper-source palette
-    -- and fires colors-changed even when the target theme already matches; left
-    -- unsuppressed, learn() banks the outgoing mode against the incoming
-    -- wallpaper, and that remembered mode then outranks luma detection forever.
     suppressUntil = noctalia.nowMs() + SUPPRESS_MS
     noctalia.log("auto-theme: already correct, nothing to do")
     return
@@ -369,8 +324,6 @@ local function applyResolved(mode, palette, wallpaperPath)
   end
 
   if needMode then
-    -- Chained, not parallel: runAsync is unordered, and a wallpaper-generated
-    -- palette depends on the mode being set first.
     noctalia.runAsync("noctalia msg theme-mode-set " .. mode, setPalette)
   else
     setPalette()
@@ -397,7 +350,6 @@ local function applyDynamic(mapped, path)
   local remembered = loadMemory()[path]
   local scheme = (remembered and remembered.scheme) or cfg.defaultScheme
 
-  -- mode precedence: path segment > remembered > image luma > leave alone
   local mode = mapped.mode or (remembered and remembered.mode)
   if mode then
     applyScheme(mode, scheme, path)
@@ -406,8 +358,6 @@ local function applyDynamic(mapped, path)
 
   local backend = detectLumaBackend()
   if not backend then
-    -- Loud once per session: silently doing nothing here reads as "the plugin
-    -- is broken", with the reason buried in the log.
     if not warnedNoLuma then
       warnedNoLuma = true
       noctalia.notifyError(
@@ -420,8 +370,6 @@ local function applyDynamic(mapped, path)
     return
   end
 
-  -- CIELAB L*, not -colorspace Gray: IM7's Gray is linear-light and misranks
-  -- dark images as lighter than they are.
   noctalia.runAsync(
     backend.build(path),
     function(result)
@@ -463,7 +411,6 @@ local function applyForPath(path)
     return
   end
 
-  -- A wallpaper directly in a mode folder names no theme: mode only.
   local namesTheme = mapped.folder ~= nil
     and not cfg.dark[norm(mapped.folder)]
     and not cfg.light[norm(mapped.folder)]
@@ -486,15 +433,12 @@ local function applyForPath(path)
   applyResolved(mapped.mode, palette, path)
 end
 
--- Record what the user picked, so returning to this wallpaper restores it.
 local function learn()
   if not cfg.enabled or not cfg.remember then return end
-  if noctalia.nowMs() < suppressUntil then return end -- our own write
+  if noctalia.nowMs() < suppressUntil then return end
 
   local theme = readTheme()
 
-  -- Only track host wallpaper schemes; anything else is a deliberate escape
-  -- from dynamic theming.
   if theme.source ~= "wallpaper" then return end
   local scheme = theme.wallpaper_scheme
 
@@ -518,12 +462,8 @@ end
 
 loadConfig()
 
--- No reconcile-on-load: this service restarts on every settings.toml write,
--- and re-applying at startup would revert a palette just picked by hand.
-
 function onIpc(event, payload)
   if event == "wallpaper-changed" then
-    -- Prefer the hook's $NOCTALIA_WALLPAPER_PATH; fall back to asking the host.
     if payload and payload ~= "" then
       applyForPath(trim(payload))
     else
@@ -540,7 +480,6 @@ end
 
 function onConfigChanged()
   loadConfig()
-  -- Re-probe: the user may have installed ImageMagick since the last reload.
   lumaBackend, warnedNoLuma = nil, false
   noctalia.log("auto-theme: settings reloaded")
 end

@@ -324,7 +324,9 @@ local function detail()
     local matchRows = {}
     for _, match in ipairs(blob.matches or {}) do
       table.insert(matchRows, ui.row({ key = match[3], gap = 8 }, {
-        ui.label({ text = match[2], fontSize = 11, color = "outline", minWidth = 74 }),
+        ui.column({ minWidth = 74 }, {
+          ui.label({ text = match[2], fontSize = 11, color = "outline", maxLines = 1 }),
+        }),
         ui.label({ text = match[3], fontSize = 11, color = "on_surface_variant", flexGrow = 1, maxLines = 1 }),
         ui.label({ text = tostring(match[1]), fontSize = 11, color = "outline" }),
       }))
@@ -347,12 +349,14 @@ local function detail()
 
     local image = blob.image
     if image ~= nil and image.thumb ~= nil and noctalia.fileExists(image.thumb) then
-      table.insert(body, ui.image({
-        path = image.thumb,
-        width = THUMB_W,
-        height = THUMB_H,
-        fit = "cover",
-        radius = 8,
+      table.insert(body, ui.row({ justify = "start" }, {
+        ui.image({
+          path = image.thumb,
+          width = THUMB_W,
+          height = THUMB_H,
+          fit = "cover",
+          radius = 8,
+        }),
       }))
     end
   end

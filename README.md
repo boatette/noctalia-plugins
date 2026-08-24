@@ -7,6 +7,7 @@ built into a system configuration.
 | ---------------- | -------------------------------------------------------------------------- |
 | `auto-theme`     | Sets the global color scheme and light/dark mode from the wallpaper's directory. |
 | `binary-clock`   | A BCD binary clock, as a bar widget and a desktop widget.                  |
+| `omarchy-import` | Browse the omarchy theme catalog and import a theme as a palette, wallpapers and a Neovim colorscheme. |
 | `umbriel-layout` | Shows the focused workspace's Umbriel layout, and switches it on click.    |
 
 Each has its own README.
@@ -44,6 +45,20 @@ nix run .#catalog
 
 It keeps the `added_at` / `updated_at` of plugins already listed, so the ordering
 in the plugin browser stays put.
+
+## Helper binaries
+
+Two plugins need a program on `PATH` that this flake builds. Both look for it by name
+and take a setting that overrides the lookup.
+
+```
+nix build .#umbriel-workspace-watch
+nix build .#omarchy-import
+```
+
+`omarchy-import` is the engine behind that plugin's panel: a Python program that speaks
+one JSON object per line and never asks a question, so the panel decides what to ask and
+draws the answer. See that plugin's README.
 
 ## umbriel-workspace-watch
 

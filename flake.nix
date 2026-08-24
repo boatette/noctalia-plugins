@@ -20,11 +20,45 @@
           extWorkspaceXml = "${pkgs.wayland-protocols}/share/wayland-protocols/staging/ext-workspace/ext-workspace-v1.xml";
         in
         {
-          # The plugins themselves are plain files that noctalia reads straight
-          # from this directory; nothing here builds them. Only umbriel-layout
-          # needs a compiled helper, because umbriel's IPC cannot say which
-          # workspace is focused and ext-workspace-v1 can.
           packages = {
+            omarchy-import =
+              let
+                raw = pkgs.writers.writePython3Bin "omarchy-import" {
+                  flakeIgnore = [
+                    "E501"
+                    "E203"
+                    "W503"
+                  ];
+                } (builtins.readFile ./omarchy-import/omarchy_import.py);
+              in
+              pkgs.symlinkJoin {
+                name = "omarchy-import";
+                paths = [ raw ];
+                nativeBuildInputs = [ pkgs.makeWrapper ];
+
+                postBuild = ''
+                  wrapProgram $out/bin/omarchy-import \
+                    --prefix PATH : ${
+                      lib.makeBinPath (
+                        with pkgs;
+                        [
+                          git
+                          imagemagick
+                          lua5_4
+                        ]
+                      )
+                    } \
+                    --set-default OMARCHY_IMPORT_EXTRACTOR ${./omarchy-import/extract_spec.lua}
+                '';
+
+                meta = {
+                  description = "import an omarchy theme as a noctalia palette, wallpaper folder and neovim entry";
+                  mainProgram = "omarchy-import";
+                  license = lib.licenses.mit;
+                  platforms = lib.platforms.linux;
+                };
+              };
+
             umbriel-workspace-watch = pkgs.stdenv.mkDerivation {
               pname = "umbriel-workspace-watch";
               version = "1.0.0";
@@ -70,10 +104,6 @@
 
             default = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.umbriel-workspace-watch;
 
-            # `wayland-client.h` lives in the store and the protocol header does
-            # not exist until wayland-scanner runs, so clangd resolves neither on
-            # its own and buries main.c in errors. This writes both, plus the
-            # flags to find them, next to the source. All of it is gitignored.
             watch-dev = pkgs.writeShellApplication {
               name = "umbriel-workspace-watch-dev";
 
@@ -102,9 +132,6 @@
               meta.description = "generate the protocol header and clangd flags for umbriel-workspace-watch";
             };
 
-            # Writes catalog.toml from every plugin.toml here. Only needed to
-            # publish this repo as a git source: noctalia scans */plugin.toml
-            # when a path source has no catalog, which cannot go stale.
             catalog = pkgs.writeShellApplication {
               name = "noctalia-plugins-catalog";
 

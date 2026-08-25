@@ -36,7 +36,11 @@ So the layout shown is resolved, in order:
 2. A matching `[[workspace]]` rule in umbriel's config, honouring its documented precedence: base `[layout]`, then a rule with no `output`, then a rule for that output.
 3. The base `[layout] mode`.
 
-Which workspace is focused comes from `umbriel-workspace-watch`, a small ext-workspace-v1 client whose source sits in this plugin's own `watch/` folder and which this repo's flake builds as `.#umbriel-workspace-watch`. That protocol carries the workspace's human-readable name and its active bit, and is the same source noctalia's own workspace widget reads, so the widget follows every switch regardless of what caused it: keybind, wheel, overview, or clicking the bar. The helper is run through `noctalia.runStream` inside a restart loop, so it recovers if it starts before the compositor or the compositor restarts under it.
+Which workspace is active on each output comes from `umbriel-workspace-watch`, a small ext-workspace-v1 client whose source sits in this plugin's own `watch/` folder and which this repo's flake builds as `.#umbriel-workspace-watch`. That protocol carries the workspace's human-readable name and its active bit, and is the same source noctalia's own workspace widget reads, so the widget follows every switch regardless of what caused it: keybind, wheel, overview, or clicking the bar. The helper is run through `noctalia.runStream` inside a restart loop, so it recovers if it starts before the compositor or the compositor restarts under it.
+
+A bar draws the workspace active on the monitor it sits on, so on several monitors each bar answers for its own. A switch is a different question: umbriel applies `workspace-set-layout` to the workspace it has focused, so that is the one a click or an ipc event reads and records against, and only the bar on that monitor changes.
+
+`barWidget.outputName()` and `noctalia.focusedOutputName()` answer only while the host is calling into the widget; from an async callback both return `nil`. Both are therefore read in the entry points — script load, `onClick`, `onIpc`, `onConfigChanged` — and cached for the callbacks that follow. `apply` likewise captures its target workspace before spawning umbriel rather than in the callback, since focus can move while umbriel answers.
 
 The helper is looked up on `PATH`; set `watch_command` to point at a different binary, or at any command of your own that prints `<output> <workspace>` per change. It takes effect on reload.
 

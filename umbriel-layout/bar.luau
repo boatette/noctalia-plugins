@@ -11,6 +11,8 @@ local cfg = {}
 
 local overrides = {}
 local activeByOutput = {}
+local ownOutput = ""
+local focusedOutput = ""
 local rules = {}
 local defaultMode = "scrolling"
 local pending = false
@@ -157,20 +159,25 @@ local function workspaceKey(output, workspace)
   return output .. "/" .. workspace
 end
 
-local function currentWorkspace()
-  local focused = noctalia.focusedOutputName()
-  if focused ~= nil and focused ~= "" and activeByOutput[focused] ~= nil then
-    return focused, activeByOutput[focused]
+local function refreshOutputs()
+  local own = trim(barWidget.outputName())
+  if own ~= "" then
+    ownOutput = own
   end
+  local focused = trim(noctalia.focusedOutputName())
+  if focused ~= "" then
+    focusedOutput = focused
+  end
+end
 
-  local own = barWidget.outputName()
-  if own ~= nil and own ~= "" and activeByOutput[own] ~= nil then
-    return own, activeByOutput[own]
+local function workspaceOn(output)
+  if output ~= "" and activeByOutput[output] ~= nil then
+    return output, activeByOutput[output]
   end
 
   local onlyOutput, onlyWorkspace, count = nil, nil, 0
-  for output, workspace in pairs(activeByOutput) do
-    onlyOutput, onlyWorkspace, count = output, workspace, count + 1
+  for candidate, workspace in pairs(activeByOutput) do
+    onlyOutput, onlyWorkspace, count = candidate, workspace, count + 1
   end
   if count == 1 then
     return onlyOutput, onlyWorkspace
@@ -179,8 +186,19 @@ local function currentWorkspace()
   return nil, nil
 end
 
-local function currentMode()
-  local output, workspace = currentWorkspace()
+local function shownWorkspace()
+  return workspaceOn(ownOutput)
+end
+
+local function targetWorkspace()
+  local output, workspace = workspaceOn(focusedOutput)
+  if workspace ~= nil then
+    return output, workspace
+  end
+  return shownWorkspace()
+end
+
+local function modeOf(output, workspace)
   if workspace == nil then
     return defaultMode
   end
@@ -189,6 +207,14 @@ local function currentMode()
     return override
   end
   return configModeFor(output, workspace)
+end
+
+local function shownMode()
+  return modeOf(shownWorkspace())
+end
+
+local function targetMode()
+  return modeOf(targetWorkspace())
 end
 
 local function glyphFor(value)
@@ -253,7 +279,7 @@ local function textFor(value)
 end
 
 local function render()
-  local mode = currentMode()
+  local mode = shownMode()
   local children = {}
 
   if wantsGlyph() then
@@ -298,7 +324,7 @@ local function render()
   barWidget.render(container({ gap = cfg.gap, align = "center" }, children))
 
   if cfg.showTooltip then
-    local _, workspace = currentWorkspace()
+    local _, workspace = shownWorkspace()
     barWidget.setTooltip(noctalia.tr("tooltip", {
       current = wordFor(mode),
       next = wordFor(otherMode(mode)),
@@ -309,8 +335,7 @@ local function render()
   end
 end
 
-local function rememberChoice(value)
-  local output, workspace = currentWorkspace()
+local function rememberChoice(output, workspace, value)
   if workspace ~= nil then
     overrides[workspaceKey(output, workspace)] = value
   end
@@ -323,6 +348,8 @@ local function apply(next)
     return
   end
   pending = true
+
+  local output, workspace = targetWorkspace()
 
   local started = noctalia.runAsync({ "umbriel", "msg", "workspace-set-layout:" .. next }, function(result)
     pending = false
@@ -338,7 +365,7 @@ local function apply(next)
       return
     end
 
-    rememberChoice(next)
+    rememberChoice(output, workspace, next)
     if cfg.notifyOnToggle then
       noctalia.notify(noctalia.tr("notify.title"), wordFor(next))
     end
@@ -372,28 +399,33 @@ local function startWatch()
 end
 
 function onClick()
-  apply(otherMode(currentMode()))
+  refreshOutputs()
+  apply(otherMode(targetMode()))
 end
 
 function onIpc(event, payload)
+  refreshOutputs()
   local value = trim(payload)
   if event == "toggle" then
-    apply(otherMode(currentMode()))
+    apply(otherMode(targetMode()))
   elseif event == "set" then
     apply(value)
   elseif event == "sync" then
     if isMode(value) then
-      rememberChoice(value)
+      local output, workspace = targetWorkspace()
+      rememberChoice(output, workspace, value)
     end
   end
 end
 
 function onConfigChanged()
+  refreshOutputs()
   readConfig()
   loadUmbrielConfig()
   render()
 end
 
+refreshOutputs()
 readConfig()
 loadUmbrielConfig()
 

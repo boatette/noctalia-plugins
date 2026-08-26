@@ -21,44 +21,6 @@
         in
         {
           packages = {
-            omarchy-import =
-              let
-                raw = pkgs.writers.writePython3Bin "omarchy-import" {
-                  flakeIgnore = [
-                    "E501"
-                    "E203"
-                    "W503"
-                  ];
-                } (builtins.readFile ./omarchy-import/omarchy_import.py);
-              in
-              pkgs.symlinkJoin {
-                name = "omarchy-import";
-                paths = [ raw ];
-                nativeBuildInputs = [ pkgs.makeWrapper ];
-
-                postBuild = ''
-                  wrapProgram $out/bin/omarchy-import \
-                    --prefix PATH : ${
-                      lib.makeBinPath (
-                        with pkgs;
-                        [
-                          git
-                          imagemagick
-                          lua5_4
-                        ]
-                      )
-                    } \
-                    --set-default OMARCHY_IMPORT_EXTRACTOR ${./omarchy-import/extract_spec.lua}
-                '';
-
-                meta = {
-                  description = "import an omarchy theme as a noctalia palette, wallpaper folder and neovim entry";
-                  mainProgram = "omarchy-import";
-                  license = lib.licenses.mit;
-                  platforms = lib.platforms.linux;
-                };
-              };
-
             umbriel-workspace-watch = pkgs.stdenv.mkDerivation {
               pname = "umbriel-workspace-watch";
               version = "1.0.0";

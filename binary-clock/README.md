@@ -53,7 +53,9 @@ Hover for the full date and time; see **Tooltip Format** below.
 
 Braille only draws lit dots, so there are no unlit ones: `00:00:00` renders as three blanks, and you lose the positional reference the LED face gives you. It cannot be fixed from the plugin — a glyph is one text run in one color, and the ui tree has no way to stack an unlit layer behind it. The LED face is the more readable of the two; braille is the compact one.
 
-**Lit Color** colors the text; **Unlit Color**, **LED Size**, **LED Spacing** and **Glow** do nothing in this mode. **Group Spacing** still separates the three characters, and wants a smaller value here than the LED default of 6, since the glyphs carry their own side bearings.
+**Braille Separator** puts text between the groups — set it to ` - ` for `⢤ - ⣊ - ⣊`, or `:` for `⢤:⣊:⣊`. Empty draws nothing. It is a plain string, so a thin space, a middot, a box-drawing `│`, anything the font has.
+
+**Lit Color** colors the characters and **Unlit Color** the separators, matching how the desktop widget colors its rules. **LED Size**, **LED Spacing** and **Glow** do nothing in this mode. **Group Spacing** still applies, and wants a smaller value here than the LED default of 6 — the glyphs carry their own side bearings, and with a separator the gap is paid twice per join.
 
 The bar font may not cover U+2800–U+28FF. Set **Braille Font** to one that does, and check first:
 
@@ -92,6 +94,7 @@ Both entries carry their own copies, so the bar can stay minimal while the deskt
 | Face Style            | bar     | LEDs                      | Braille draws the grid as three characters instead.      |
 | Braille Size          | bar     | 13                        | Font size of the braille characters. Braille face only.  |
 | Braille Font          | bar     | *(bar font)*              | Family to draw the braille with. Braille face only.      |
+| Braille Separator     | bar     | *(none)*                  | Text between the groups. Braille face only.              |
 | LED Size              | both    | 5 (bar) / 16 (desktop)    | Diameter of one LED.                                     |
 | LED Spacing           | both    | 2 (bar) / 8 (desktop)     | Gap between LEDs.                                        |
 | Group Spacing         | both    | 6 (bar) / 14 (desktop)    | Gap between hours, minutes and seconds.                  |

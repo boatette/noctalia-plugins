@@ -62,6 +62,13 @@ entry = "bar.luau"
   default = ""
 
   [[widget.setting]]
+  key = "braille_separator"
+  type = "string"
+  label_key = "settings.braille_separator.label"
+  description_key = "settings.braille_separator.description"
+  default = ""
+
+  [[widget.setting]]
   key = "led_size"
   type = "int"
   label_key = "settings.led_size.label"

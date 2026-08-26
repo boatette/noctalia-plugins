@@ -33,6 +33,10 @@
       "label": "Braille Font",
       "description": "Font family to draw the braille with. Empty uses the bar font, which may not cover U+2800-U+28FF."
     },
+    "braille_separator": {
+      "label": "Braille Separator",
+      "description": "Text drawn between the hours, minutes and seconds characters, e.g. - or :. Empty draws nothing. Braille face only."
+    },
     "show_headers": {
       "label": "Show Column Headers",
       "description": "Label each group Hours / Minutes / Seconds."

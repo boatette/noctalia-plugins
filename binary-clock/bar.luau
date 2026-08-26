@@ -13,7 +13,8 @@ local function readConfig()
     hourFormat = noctalia.getConfig("hour_format"),
     renderStyle = noctalia.getConfig("render_style"),
     brailleSize = noctalia.getConfig("braille_size"),
-    brailleFont = noctalia.getConfig("braille_font"),
+    brailleFont = noctalia.getConfig("braille_font") or "",
+    brailleSeparator = noctalia.getConfig("braille_separator") or "",
     ledSize = noctalia.getConfig("led_size"),
     ledGap = noctalia.getConfig("led_gap"),
     groupGap = noctalia.getConfig("group_gap"),
@@ -81,6 +82,30 @@ local function brailleGroup(key, tens, units)
   return ui.label(props)
 end
 
+local function brailleSeparator(index)
+  local props = {
+    key = "sep-" .. index,
+    text = cfg.brailleSeparator,
+    fontSize = cfg.brailleSize,
+    color = cfg.offColor,
+  }
+  if cfg.brailleFont ~= "" then
+    props.fontFamily = cfg.brailleFont
+  end
+  return ui.label(props)
+end
+
+local function interleave(groups)
+  local out = {}
+  for i, node in ipairs(groups) do
+    if i > 1 then
+      out[#out + 1] = brailleSeparator(i)
+    end
+    out[#out + 1] = node
+  end
+  return out
+end
+
 local function face(key, tens, tensBits, units, vertical)
   if cfg.renderStyle == "braille" then
     return brailleGroup(key, tens, units)
@@ -129,6 +154,10 @@ local function render(now)
 
   if cfg.showSeconds then
     groups[#groups + 1] = face("seconds", math.floor(now.sec / 10), 3, now.sec % 10, vertical)
+  end
+
+  if cfg.renderStyle == "braille" and cfg.brailleSeparator ~= "" then
+    groups = interleave(groups)
   end
 
   local container = vertical and ui.column or ui.row

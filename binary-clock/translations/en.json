@@ -17,6 +17,22 @@
         "12": "12-hour"
       }
     },
+    "render_style": {
+      "label": "Face Style",
+      "description": "LEDs draws the grid; Braille draws the same grid as three braille characters, one per group. Braille has no unlit dots.",
+      "options": {
+        "leds": "LEDs",
+        "braille": "Braille"
+      }
+    },
+    "braille_size": {
+      "label": "Braille Size",
+      "description": "Font size of the braille characters, in points. Braille face only."
+    },
+    "braille_font": {
+      "label": "Braille Font",
+      "description": "Font family to draw the braille with. Empty uses the bar font, which may not cover U+2800-U+28FF."
+    },
     "show_headers": {
       "label": "Show Column Headers",
       "description": "Label each group Hours / Minutes / Seconds."

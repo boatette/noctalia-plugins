@@ -35,6 +35,33 @@ entry = "bar.luau"
   ]
 
   [[widget.setting]]
+  key = "render_style"
+  type = "select"
+  label_key = "settings.render_style.label"
+  description_key = "settings.render_style.description"
+  default = "leds"
+  options = [
+    { value = "leds", label_key = "settings.render_style.options.leds" },
+    { value = "braille", label_key = "settings.render_style.options.braille" },
+  ]
+
+  [[widget.setting]]
+  key = "braille_size"
+  type = "int"
+  label_key = "settings.braille_size.label"
+  description_key = "settings.braille_size.description"
+  default = 13
+  min = 6
+  max = 40
+
+  [[widget.setting]]
+  key = "braille_font"
+  type = "string"
+  label_key = "settings.braille_font.label"
+  description_key = "settings.braille_font.description"
+  default = ""
+
+  [[widget.setting]]
   key = "led_size"
   type = "int"
   label_key = "settings.led_size.label"

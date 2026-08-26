@@ -2,12 +2,18 @@
 
 local ROW_WEIGHTS = { 8, 4, 2, 1 }
 
+local BRAILLE_LEFT = { 0x01, 0x02, 0x04, 0x40 }
+local BRAILLE_RIGHT = { 0x08, 0x10, 0x20, 0x80 }
+
 local cfg = {}
 
 local function readConfig()
   cfg = {
     showSeconds = noctalia.getConfig("show_seconds"),
     hourFormat = noctalia.getConfig("hour_format"),
+    renderStyle = noctalia.getConfig("render_style"),
+    brailleSize = noctalia.getConfig("braille_size"),
+    brailleFont = noctalia.getConfig("braille_font"),
     ledSize = noctalia.getConfig("led_size"),
     ledGap = noctalia.getConfig("led_gap"),
     groupGap = noctalia.getConfig("group_gap"),
@@ -49,6 +55,39 @@ local function group(key, tens, tensBits, units, vertical)
   })
 end
 
+local function brailleCell(tens, units)
+  local bits = 0
+  for i = 1, 4 do
+    if math.floor(tens / ROW_WEIGHTS[i]) % 2 == 1 then
+      bits = bits + BRAILLE_LEFT[i]
+    end
+    if math.floor(units / ROW_WEIGHTS[i]) % 2 == 1 then
+      bits = bits + BRAILLE_RIGHT[i]
+    end
+  end
+  return string.char(0xE2, 0xA0 + math.floor(bits / 64), 0x80 + bits % 64)
+end
+
+local function brailleGroup(key, tens, units)
+  local props = {
+    key = key,
+    text = brailleCell(tens, units),
+    fontSize = cfg.brailleSize,
+    color = cfg.onColor,
+  }
+  if cfg.brailleFont ~= "" then
+    props.fontFamily = cfg.brailleFont
+  end
+  return ui.label(props)
+end
+
+local function face(key, tens, tensBits, units, vertical)
+  if cfg.renderStyle == "braille" then
+    return brailleGroup(key, tens, units)
+  end
+  return group(key, tens, tensBits, units, vertical)
+end
+
 local function displayHour(hour24)
   if cfg.hourFormat ~= "12" then
     return hour24
@@ -84,12 +123,12 @@ local function render(now)
   local hour = displayHour(now.hour)
 
   local groups = {
-    group("hours", math.floor(hour / 10), 2, hour % 10, vertical),
-    group("minutes", math.floor(now.min / 10), 3, now.min % 10, vertical),
+    face("hours", math.floor(hour / 10), 2, hour % 10, vertical),
+    face("minutes", math.floor(now.min / 10), 3, now.min % 10, vertical),
   }
 
   if cfg.showSeconds then
-    groups[#groups + 1] = group("seconds", math.floor(now.sec / 10), 3, now.sec % 10, vertical)
+    groups[#groups + 1] = face("seconds", math.floor(now.sec / 10), 3, now.sec % 10, vertical)
   end
 
   local container = vertical and ui.column or ui.row

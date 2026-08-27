@@ -143,8 +143,7 @@ local function setTooltip()
   end
 end
 
-local function render(now)
-  local vertical = barWidget.isVertical()
+local function render(now, vertical)
   local hour = displayHour(now.hour)
 
   local groups = {
@@ -166,9 +165,19 @@ local function render(now)
   setTooltip()
 end
 
+local SETTLE_MS = 5000
+local SETTLE_PERIOD = 250
+
+local settleUntil = 0
+
 local function scheduleNextTick()
+  local nowMs = noctalia.nowMs()
+  if nowMs < settleUntil then
+    noctalia.setUpdateInterval(SETTLE_PERIOD)
+    return
+  end
   local period = cfg.showSeconds and 1000 or 60000
-  noctalia.setUpdateInterval(math.max(16, period - (noctalia.nowMs() % period)))
+  noctalia.setUpdateInterval(math.max(16, period - (nowMs % period)))
 end
 
 local lastDrawn = nil
@@ -177,19 +186,23 @@ function update()
   scheduleNextTick()
 
   local now = os.date("*t")
-  local key = string.format("%d:%d:%d", now.hour, now.min, cfg.showSeconds and now.sec or 0)
+  local vertical = barWidget.isVertical()
+  local key = string.format("%d:%d:%d:%s", now.hour, now.min, cfg.showSeconds and now.sec or 0,
+    tostring(vertical))
   if key == lastDrawn then
     return
   end
   lastDrawn = key
-  render(now)
+  render(now, vertical)
 end
 
 function onConfigChanged()
   readConfig()
+  settleUntil = noctalia.nowMs() + SETTLE_MS
   lastDrawn = nil
   update()
 end
 
 readConfig()
+settleUntil = noctalia.nowMs() + SETTLE_MS
 update()

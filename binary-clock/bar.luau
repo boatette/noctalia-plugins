@@ -167,17 +167,26 @@ end
 
 local SETTLE_MS = 5000
 local SETTLE_PERIOD = 250
+local TICK_PERIOD = 250
+local IDLE_PERIOD = 1000
 
 local settleUntil = 0
+local appliedPeriod = nil
 
-local function scheduleNextTick()
-  local nowMs = noctalia.nowMs()
-  if nowMs < settleUntil then
-    noctalia.setUpdateInterval(SETTLE_PERIOD)
+local function setPeriod(ms)
+  if ms == appliedPeriod then
     return
   end
-  local period = cfg.showSeconds and 1000 or 60000
-  noctalia.setUpdateInterval(math.max(16, period - (nowMs % period)))
+  appliedPeriod = ms
+  noctalia.setUpdateInterval(ms)
+end
+
+local function scheduleNextTick()
+  if noctalia.nowMs() < settleUntil then
+    setPeriod(SETTLE_PERIOD)
+    return
+  end
+  setPeriod(cfg.showSeconds and TICK_PERIOD or IDLE_PERIOD)
 end
 
 local lastDrawn = nil

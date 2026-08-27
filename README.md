@@ -7,7 +7,6 @@ built into a system configuration.
 | ---------------- | -------------------------------------------------------------------------- |
 | `auto-theme`     | Sets the global color scheme and light/dark mode from the wallpaper's directory. |
 | `binary-clock`   | A BCD binary clock, as a bar widget and a desktop widget.                  |
-| `umbriel-layout` | Shows the focused workspace's Umbriel layout, and switches it on click.    |
 
 Each has its own README.
 
@@ -44,22 +43,3 @@ nix run .#catalog
 
 It keeps the `added_at` / `updated_at` of plugins already listed, so the ordering
 in the plugin browser stays put.
-
-## umbriel-workspace-watch
-
-`umbriel-layout` needs to know which workspace is focused, and Umbriel's IPC
-cannot say: it reports workspaces only as opaque per-output serials attached to
-windows, and emits no event on a switch. `umbriel-layout/watch/main.c` reads it
-from `ext-workspace-v1` instead, the same protocol noctalia's own workspace
-widget uses.
-
-```
-nix build .#umbriel-workspace-watch
-nix run   .#umbriel-workspace-watch     # prints "<output> <workspace>" per change
-```
-
-The plugin looks for it on `PATH`; its `watch_command` setting overrides that.
-
-To work on it, `nix run .#watch-dev` from `umbriel-layout/watch` writes the
-wayland-scanner output and a `compile_flags.txt` so clangd can resolve
-`<wayland-client.h>` and the generated protocol header. See that plugin's README.

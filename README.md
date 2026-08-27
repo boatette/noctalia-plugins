@@ -6,7 +6,6 @@ built into a system configuration.
 | Plugin           | What it is                                                                 |
 | ---------------- | -------------------------------------------------------------------------- |
 | `auto-theme`     | Sets the global color scheme and light/dark mode from the wallpaper's directory. |
-| `binary-clock`   | A BCD binary clock, as a bar widget and a desktop widget.                  |
 
 Each has its own README.
 
